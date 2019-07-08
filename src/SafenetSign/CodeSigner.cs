@@ -9,7 +9,7 @@ namespace SafenetSign
     public static class CodeSigner
     {
         public static void SignFile(string certificateThumbprint, string pin, string containerName,
-            CertificateStore store, string path, string timestampUrl, SignMode mode, string dllPath, Logger logger)
+            CertificateStore store, string path, string timestampUrl, SignMode mode, string dllPath, Logger logger, string timestampAlgorithmOid = null)
         {
             logger.WriteLine("Validating certificate thumbprint", true);
             if (certificateThumbprint?.Length != 40 || !ValidateThumbprint(certificateThumbprint))
@@ -33,7 +33,7 @@ namespace SafenetSign
 
                     try
                     {
-                        SignFile(certificate, path, timestampUrl, mode, containerName, dllPath, logger);
+                        SignFile(certificate, path, timestampUrl, mode, containerName, dllPath, logger, timestampAlgorithmOid);
                     }
                     finally
                     {
@@ -123,13 +123,13 @@ namespace SafenetSign
             return certificate;
         }
 
-        private static void SignFile(IntPtr certificate, string path, string timestampUrl, SignMode type, string containerName, string dllPath, Logger logger)
+        private static void SignFile(IntPtr certificate, string path, string timestampUrl, SignMode type, string containerName, string dllPath, Logger logger, string timestampAlgorithmOid)
         {
             logger.WriteLine("Beginning the signing process", true);
             var subjectInfo = GetSubjectInfoPointer(path);
             var signerCertificate = GetSignerCertificatePointer(certificate);
             var provider = GetProviderPointer(containerName);
-            var signerSignEx2Params = GetSignerSignEx2ParametersPointer(timestampUrl, type, subjectInfo, signerCertificate, provider, out var signerSignHandle);
+            var signerSignEx2Params = GetSignerSignEx2ParametersPointer(timestampUrl, type, subjectInfo, signerCertificate, provider, out var signerSignHandle, timestampAlgorithmOid);
 
             try
             {
@@ -187,6 +187,17 @@ namespace SafenetSign
                     signerSignEx2Params.pCryptoPolicy,
                     signerSignEx2Params.pReserved);
 
+                Marshal.FreeHGlobal(signerSignEx2Params.pwszTimestampURL);
+                Marshal.FreeHGlobal(signerSignEx2Params.pszAlgorithmOid);
+                if (type == SignMode.APPX)
+                {
+                    var sipData = Marshal.PtrToStructure<APPX_SIP_CLIENT_DATA>(signerSignEx2Params.pSipData);
+                    if (sipData.pAppxSipState != IntPtr.Zero)
+                    {
+                        Marshal.Release(sipData.pAppxSipState);
+                    }
+                }
+
                 if (result != 0)
                 {
                     throw new SigningException("Win32 error in SignerSignEx2:", Marshal.GetExceptionForHR(result));
@@ -221,7 +232,7 @@ namespace SafenetSign
         }
 
         private static SIGNER_SIGN_EX2_PARAMS GetSignerSignEx2ParametersPointer(string timestampUrl, SignMode type,
-            IntPtr subjectInfo, IntPtr signerCertificate, IntPtr provider, out GCHandle? signerSignHandle)
+            IntPtr subjectInfo, IntPtr signerCertificate, IntPtr provider, out GCHandle? signerSignHandle, string timestampAlgorithmOid)
         {
             // signature info
             var signatureInfo = new SIGNER_SIGNATURE_INFO
@@ -245,9 +256,20 @@ namespace SafenetSign
                 pSigningCert = signerCertificate,
                 pSignatureInfo = signatureHandle,
                 pProviderInfo = provider,
-                dwTimestampFlags = Constants.SIGNER_TIMESTAMP_AUTHENTICODE,
-                pwszTimestampURL = Marshal.StringToHGlobalUni(timestampUrl)
             };
+            if (!string.IsNullOrEmpty(timestampUrl))
+            {
+                signerSignEx2Params.pwszTimestampURL = Marshal.StringToHGlobalUni(timestampUrl);
+                if (string.IsNullOrEmpty(timestampAlgorithmOid))
+                {
+                    signerSignEx2Params.dwTimestampFlags = Constants.SIGNER_TIMESTAMP_AUTHENTICODE;
+                }
+                else
+                {
+                    signerSignEx2Params.dwTimestampFlags = Constants.SIGNER_TIMESTAMP_RFC3161;
+                    signerSignEx2Params.pszAlgorithmOid = Marshal.StringToHGlobalAnsi(timestampAlgorithmOid);
+                }
+            }
 
             signerSignHandle = null;
             if (type == SignMode.APPX)

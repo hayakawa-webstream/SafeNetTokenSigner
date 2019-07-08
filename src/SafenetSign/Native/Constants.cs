@@ -16,12 +16,14 @@
 
         public const int MY_ENCODING_TYPE = 0x00010000 | 0x00000001;
         public const int CERT_FIND_SHA1_HASH = 1 << 16;
+        public const int CERT_FIND_HAS_PRIVATE_KEY = 21 << 16;
 
         public const int SIGNER_SUBJECT_FILE = 0x01;
         public const int SIGNER_CERT_POLICY_CHAIN_NO_ROOT = 0x08;
         public const int SIGNER_CERT_STORE = 0x2;
         public const int CALG_SHA_256 = 0x0000800c;
         public const int SIGNER_TIMESTAMP_AUTHENTICODE = 1;
+        public const int SIGNER_TIMESTAMP_RFC3161 = 2;
 
         public const int PP_SIGNATURE_PIN = 33;
 

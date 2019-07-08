@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{E6E881E2-19BB-4D7D-8AA8-8F881779C4FE}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>SafenetSignDotnet</RootNamespace>
+    <AssemblyName>SafenetSign</AssemblyName>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="CommandLine, Version=1.9.71.2, Culture=neutral, PublicKeyToken=de6f01bd326f8c32, processorArchitecture=MSIL">
+      <HintPath>..\packages\CommandLineParser.1.9.71\lib\net45\CommandLine.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\SafenetSign\CertificateStore.cs">
+      <Link>CertificateStore.cs</Link>
+    </Compile>
+    <Compile Include="..\SafenetSign\CodeSigner.cs">
+      <Link>CodeSigner.cs</Link>
+    </Compile>
+    <Compile Include="..\SafenetSign\Logger.cs">
+      <Link>Logger.cs</Link>
+    </Compile>
+    <Compile Include="..\SafenetSign\NativeMethods.cs">
+      <Link>NativeMethods.cs</Link>
+    </Compile>
+    <Compile Include="..\SafenetSign\Native\APPX_SIP_CLIENT_DATA.cs">
+      <Link>Native\APPX_SIP_CLIENT_DATA.cs</Link>
+    </Compile>
+    <Compile Include="..\SafenetSign\Native\Constants.cs">
+      <Link>Native\Constants.cs</Link>
+    </Compile>
+    <Compile Include="..\SafenetSign\Native\CRYPTOAPI_BLOB.cs">
+      <Link>Native\CRYPTOAPI_BLOB.cs</Link>
+    </Compile>
+    <Compile Include="..\SafenetSign\Native\LoadLibraryFlags.cs">
+      <Link>Native\LoadLibraryFlags.cs</Link>
+    </Compile>
+    <Compile Include="..\SafenetSign\Native\SIGNER_CERT.cs">
+      <Link>Native\SIGNER_CERT.cs</Link>
+    </Compile>
+    <Compile Include="..\SafenetSign\Native\SIGNER_CERT_STORE_INFO.cs">
+      <Link>Native\SIGNER_CERT_STORE_INFO.cs</Link>
+    </Compile>
+    <Compile Include="..\SafenetSign\Native\SIGNER_FILE_INFO.cs">
+      <Link>Native\SIGNER_FILE_INFO.cs</Link>
+    </Compile>
+    <Compile Include="..\SafenetSign\Native\SIGNER_PROVIDER_INFO.cs">
+      <Link>Native\SIGNER_PROVIDER_INFO.cs</Link>
+    </Compile>
+    <Compile Include="..\SafenetSign\Native\SIGNER_SIGNATURE_INFO.cs">
+      <Link>Native\SIGNER_SIGNATURE_INFO.cs</Link>
+    </Compile>
+    <Compile Include="..\SafenetSign\Native\SIGNER_SIGN_EX2_PARAMS.cs">
+      <Link>Native\SIGNER_SIGN_EX2_PARAMS.cs</Link>
+    </Compile>
+    <Compile Include="..\SafenetSign\Native\SIGNER_SUBJECT_INFO.cs">
+      <Link>Native\SIGNER_SUBJECT_INFO.cs</Link>
+    </Compile>
+    <Compile Include="..\SafenetSign\SigningException.cs">
+      <Link>SigningException.cs</Link>
+    </Compile>
+    <Compile Include="..\SafenetSign\SignMode.cs">
+      <Link>SignMode.cs</Link>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
