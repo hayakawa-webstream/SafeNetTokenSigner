@@ -1,0 +1,21 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="SafenetSignDotnet.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="Container" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\\.\AKS ifdh 0</Value>
+    </Setting>
+    <Setting Name="Store" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">user</Value>
+    </Setting>
+    <Setting Name="TimestampUrl" Type="System.String" Scope="Application">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="Mode" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">appx</Value>
+    </Setting>
+    <Setting Name="TimestampAlgorithm" Type="System.String" Scope="Application">
+      <Value Profile="(Default)" />
+    </Setting>
+  </Settings>
+</SettingsFile>

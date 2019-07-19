@@ -3,6 +3,8 @@ using SafenetSign;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.ServiceModel;
+using System.ServiceModel.Description;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -31,11 +33,17 @@ namespace SafenetSignDotnet
             [Option("timestamp_url")]
             public string timestamp_url { get; set; }
 
+            [Option("mode")]
+            public string mode { get; set; }
+
             [Option("timestamp_argorithm")]
             public string timestamp_argorithm { get; set; }
 
             [Option("file")]
             public string file { get; set; }
+
+            [Option("service")]
+            public bool service { get; set; }
 
             [Option("verbose")]
             public bool verbose { get; set; }
@@ -56,22 +64,24 @@ namespace SafenetSignDotnet
                 Environment.Exit(1);
             }
 
-            if (string.IsNullOrEmpty(options.hash))
+            if (!options.service)
             {
-                Console.Error.WriteLine("missing hash");
-                Environment.Exit(1);
+                if (string.IsNullOrEmpty(options.hash))
+                {
+                    Console.Error.WriteLine("missing hash");
+                    Environment.Exit(1);
+                }
+                if (string.IsNullOrEmpty(options.pin))
+                {
+                    Console.Error.WriteLine("missing pin");
+                    Environment.Exit(1);
+                }
+                if (string.IsNullOrEmpty(options.file))
+                {
+                    Console.Error.WriteLine("missing file");
+                    Environment.Exit(1);
+                }
             }
-            if (string.IsNullOrEmpty(options.pin))
-            {
-                Console.Error.WriteLine("missing pin");
-                Environment.Exit(1);
-            }
-            if (string.IsNullOrEmpty(options.file))
-            {
-                Console.Error.WriteLine("missing file");
-                Environment.Exit(1);
-            }
-
         }
 
         #endregion
@@ -85,15 +95,25 @@ namespace SafenetSignDotnet
             }
             InitOptions(args);
 
-            var certHash = options.hash;
-            var containerName = options.container ?? @"\\.\AKS ifdh 0";
-            var targetStore = options.store ?? "user";
-            var tokenPin = options.pin;
-            var timestampUrl = options.timestamp_url;
-            var mode = "appx";
-            var fileToSign = options.file;
+            if (options.service)
+            {
+                ServiceMain();
+                return 0;
+            }
+
+            return SignFile(null, null, null, null, null, null, options.file, null);
+        }
+
+        public static int SignFile(string hash, string container, string str_store, string pin, string timestamp_url, string str_mode, string fileToSign, string timestamp_algorithm)
+        {
+            var certHash = hash ?? options.hash;
+            var containerName = container ?? options.container ?? Properties.Settings.Default.Container;
+            var targetStore = str_store ?? options.store ?? Properties.Settings.Default.Store;
+            var tokenPin = pin ?? options.pin;
+            var timestampUrl = timestamp_url ?? options.timestamp_url ?? Properties.Settings.Default.TimestampUrl;
+            var mode = str_mode ?? options.mode ?? Properties.Settings.Default.Mode;
+            var timestampAlgorithm = timestamp_algorithm ?? options.timestamp_argorithm ?? Properties.Settings.Default.TimestampAlgorithm;
             var verbose = options.verbose;
-            var timestampAlgorithm = options.timestamp_argorithm;
 
             try
             {
@@ -114,6 +134,7 @@ namespace SafenetSignDotnet
                 return 2;
             }
         }
+
 
         private static CertificateStore ParseStore(string storeString)
         {
@@ -149,6 +170,39 @@ namespace SafenetSignDotnet
             }
 
             return signMode;
+        }
+
+        static void ServiceMain()
+        {
+            Service.verbose = options.verbose;
+
+            // Create a ServiceHost instance.
+            var service_host = new ServiceHost(typeof(Service));
+
+            try
+            {
+#if DEBUG
+                // Enable metadata exchange.
+                var smb = new ServiceMetadataBehavior();
+                smb.HttpGetEnabled = true;
+                service_host.Description.Behaviors.Add(smb);
+#endif
+
+                // Start the service.
+                service_host.Open();
+                Console.WriteLine("The service is ready.");
+
+                // Close the ServiceHost to stop the service.
+                Console.WriteLine("Press <Enter> to terminate the service.");
+                Console.WriteLine();
+                Console.ReadLine();
+                service_host.Close();
+            }
+            catch (CommunicationException ce)
+            {
+                Console.WriteLine("An exception occurred: {0}", ce.Message);
+                service_host.Abort();
+            }
         }
     }
 }
