@@ -13,9 +13,14 @@ namespace SafenetSignDotnet
     // メモ: [リファクター] メニューの [名前の変更] コマンドを使用すると、コードと config ファイルの両方で同時にクラス名 "Service" を変更できます。
     public class Service : IService
     {
-        public string GetPublicKey()
+        public string GetEncryptInfo()
         {
-            return rsa.ToXmlString(false);
+            var public_key = rsa.ToXmlString(false);
+            var ticks = DateTime.UtcNow.Ticks;
+            var dic = new Dictionary<string, object>();
+            dic.Add("public_key", public_key);
+            dic.Add("ticks", ticks);
+            return jss.Serialize(dic);
         }
 
         public Stream Sign(Stream fs)
@@ -29,6 +34,16 @@ namespace SafenetSignDotnet
                     Console.WriteLine("signParamsJson: {0}", signParamsJson);
 #endif
                     signParams = jss.Deserialize<SignParams>(signParamsJson);
+                    if (!string.IsNullOrEmpty(signParams.cipher))
+                    {
+                        var decryptedStr = Encoding.UTF8.GetString(rsa.Decrypt(Convert.FromBase64String(signParams.cipher), false));
+                        var decryptedParams = jss.Deserialize<DecryptedParams>(decryptedStr);
+                        var ticks = DateTime.UtcNow.Ticks - decryptedParams.ticks;
+                        if (0 <= ticks && ticks <= 60 * TimeSpan.TicksPerSecond)
+                        {
+                            signParams.pin = decryptedParams.pin;
+                        }
+                    }
                 }
             }
             var filePath = Path.Combine(System.Environment.CurrentDirectory, Guid.NewGuid().ToString() + ".bin");
@@ -89,6 +104,13 @@ namespace SafenetSignDotnet
             public string timestamp_url { get; set; }
             public string mode { get; set; }
             public string timestamp_argorithm { get; set; }
+            public string cipher { get; set; }
+        }
+
+        class DecryptedParams
+        {
+            public string pin { get; set; }
+            public long ticks { get; set; }
         }
     }
 }

@@ -16,6 +16,6 @@ namespace SafenetSignDotnet
         Stream Sign(Stream fs);
 
         [OperationContract]
-        string GetPublicKey();
+        string GetEncryptInfo();
     }
 }

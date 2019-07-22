@@ -21,11 +21,11 @@ public interface IService
     [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IService/Sign", ReplyAction="http://tempuri.org/IService/SignResponse")]
     System.Threading.Tasks.Task<System.IO.Stream> SignAsync(System.IO.Stream fs);
     
-    [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IService/GetPublicKey", ReplyAction="http://tempuri.org/IService/GetPublicKeyResponse")]
-    string GetPublicKey();
+    [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IService/GetEncryptInfo", ReplyAction="http://tempuri.org/IService/GetEncryptInfoResponse")]
+    string GetEncryptInfo();
     
-    [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IService/GetPublicKey", ReplyAction="http://tempuri.org/IService/GetPublicKeyResponse")]
-    System.Threading.Tasks.Task<string> GetPublicKeyAsync();
+    [System.ServiceModel.OperationContractAttribute(Action="http://tempuri.org/IService/GetEncryptInfo", ReplyAction="http://tempuri.org/IService/GetEncryptInfoResponse")]
+    System.Threading.Tasks.Task<string> GetEncryptInfoAsync();
 }
 
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
@@ -72,13 +72,13 @@ public partial class ServiceClient : System.ServiceModel.ClientBase<IService>, I
         return base.Channel.SignAsync(fs);
     }
     
-    public string GetPublicKey()
+    public string GetEncryptInfo()
     {
-        return base.Channel.GetPublicKey();
+        return base.Channel.GetEncryptInfo();
     }
     
-    public System.Threading.Tasks.Task<string> GetPublicKeyAsync()
+    public System.Threading.Tasks.Task<string> GetEncryptInfoAsync()
     {
-        return base.Channel.GetPublicKeyAsync();
+        return base.Channel.GetEncryptInfoAsync();
     }
 }

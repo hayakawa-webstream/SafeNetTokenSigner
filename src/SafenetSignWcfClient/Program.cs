@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
@@ -47,6 +48,9 @@ namespace SafenetSignWcfClient
             [Option("create_new")]
             public bool create_new { get; set; }
 
+            [Option("plain_pin")]
+            public bool plain_pin { get; set; }
+
             #endregion
         }
 
@@ -88,25 +92,45 @@ namespace SafenetSignWcfClient
             int result = 0;
             try
             {
+                var server = options.server ?? "localhost";
+                var remote_address = string.Format("http://{0}:8733/SafenetSign/", server);
+                // Create an instance of the WCF proxy.
+                var service_client = new ServiceClient("BasicHttpBinding_IService", remote_address);
+
+                var jss = new JavaScriptSerializer();
+
                 var dic = new Dictionary<string, string>();
                 if (options.hash != null) { dic.Add("hash", options.hash); }
                 if (options.container != null) { dic.Add("container", options.container); }
                 if (options.store != null) { dic.Add("store", options.store); }
-                if (options.pin != null) { dic.Add("pin", options.pin); }
                 if (options.timestamp_url != null) { dic.Add("timestamp_url", options.timestamp_url); }
                 if (options.mode != null) { dic.Add("mode", options.mode); }
                 if (options.timestamp_argorithm != null) { dic.Add("timestamp_argorithm", options.timestamp_argorithm); }
-                var jss = new JavaScriptSerializer();
+                if (options.pin != null)
+                {
+                    if (options.plain_pin)
+                    {
+                        dic.Add("pin", options.pin);
+                    }
+                    else
+                    {
+                        var encrypt_info_str = service_client.GetEncryptInfo();
+                        var encrypt_info = jss.Deserialize<EncryptInfo>(encrypt_info_str);
+                        var plain_dic = new Dictionary<string, object>();
+                        plain_dic.Add("ticks", encrypt_info.ticks);
+                        plain_dic.Add("pin", options.pin);
+                        var plain_str = jss.Serialize(plain_dic);
+                        var rsa = new RSACryptoServiceProvider();
+                        rsa.FromXmlString(encrypt_info.public_key);
+                        var cipher = Convert.ToBase64String(rsa.Encrypt(Encoding.UTF8.GetBytes(plain_str), false));
+                        dic.Add("cipher", cipher);
+                    }
+                }
                 var sign_params_json = jss.Serialize(dic);
-
-                var server = options.server ?? "localhost";
-                var remote_address = string.Format("http://{0}:8733/SafenetSign/", server);
 
                 var src_path = options.file;
                 var dst_path = options.file + ".signed";
 
-                // Create an instance of the WCF proxy.
-                var service_client = new ServiceClient("BasicHttpBinding_IService", remote_address);
                 using (var src_fs = new FileStream(src_path, FileMode.Open, FileAccess.Read, FileShare.Read))
                 using (var dst_fs = new FileStream(dst_path, FileMode.Create, FileAccess.Write, FileShare.None))
                 using (var ms = new MemoryStream())
@@ -140,6 +164,12 @@ namespace SafenetSignWcfClient
                 result = 1;
             }
             return result;
+        }
+
+        class EncryptInfo
+        {
+            public string public_key { get; set; }
+            public long ticks { get; set; }
         }
     }
 }
