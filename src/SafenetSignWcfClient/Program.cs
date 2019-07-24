@@ -92,6 +92,9 @@ namespace SafenetSignWcfClient
             int result = 0;
             try
             {
+                var src_path = options.file;
+                var dst_path = options.file + ".signed";
+
                 var server = options.server ?? "localhost";
                 var remote_address = string.Format("http://{0}:8733/SafenetSign/", server);
                 // Create an instance of the WCF proxy.
@@ -119,6 +122,7 @@ namespace SafenetSignWcfClient
                         var plain_dic = new Dictionary<string, object>();
                         plain_dic.Add("ticks", encrypt_info.ticks);
                         plain_dic.Add("pin", options.pin);
+                        plain_dic.Add("sha1", CalcSha1Hash(src_path));
                         var plain_str = jss.Serialize(plain_dic);
                         var rsa = new RSACryptoServiceProvider();
                         rsa.FromXmlString(encrypt_info.public_key);
@@ -127,9 +131,6 @@ namespace SafenetSignWcfClient
                     }
                 }
                 var sign_params_json = jss.Serialize(dic);
-
-                var src_path = options.file;
-                var dst_path = options.file + ".signed";
 
                 using (var src_fs = new FileStream(src_path, FileMode.Open, FileAccess.Read, FileShare.Read))
                 using (var dst_fs = new FileStream(dst_path, FileMode.Create, FileAccess.Write, FileShare.None))
@@ -164,6 +165,16 @@ namespace SafenetSignWcfClient
                 result = 1;
             }
             return result;
+        }
+
+        static string CalcSha1Hash(string path)
+        {
+            using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                var sha1 = new SHA1Managed();
+                var hash = sha1.ComputeHash(fs);
+                return BitConverter.ToString(hash).Replace("-", string.Empty);
+            }
         }
 
         class EncryptInfo

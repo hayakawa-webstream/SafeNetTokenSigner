@@ -42,6 +42,7 @@ namespace SafenetSignDotnet
                         if (0 <= ticks && ticks <= 60 * TimeSpan.TicksPerSecond)
                         {
                             signParams.pin = decryptedParams.pin;
+                            signParams.sha1 = decryptedParams.sha1;
                         }
                     }
                 }
@@ -58,6 +59,15 @@ namespace SafenetSignDotnet
                     fs.CopyTo(outFs);
                 }
                 fs.Close();
+
+                if (!string.IsNullOrEmpty(signParams.sha1))
+                {
+                    var sha1 = CalcSha1Hash(filePath);
+                    if (0 != string.Compare(signParams.sha1, sha1, true))
+                    {
+                        throw new Exception("SHA1 hash mismatched");
+                    }
+                }
 
                 // sign
                 if (verbose)
@@ -91,6 +101,16 @@ namespace SafenetSignDotnet
             }
         }
 
+        static string CalcSha1Hash(string path)
+        {
+            using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                var sha1 = new SHA1Managed();
+                var hash = sha1.ComputeHash(fs);
+                return BitConverter.ToString(hash).Replace("-", string.Empty);
+            }
+        }
+
         public static bool verbose;
         static RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(2048);
         static JavaScriptSerializer jss = new JavaScriptSerializer();
@@ -105,12 +125,14 @@ namespace SafenetSignDotnet
             public string mode { get; set; }
             public string timestamp_argorithm { get; set; }
             public string cipher { get; set; }
+            public string sha1 { get; set; }
         }
 
         class DecryptedParams
         {
             public string pin { get; set; }
             public long ticks { get; set; }
+            public string sha1 { get; set; }
         }
     }
 }
