@@ -91,10 +91,11 @@ namespace SafenetSignDotnet
                        4096, FileOptions.RandomAccess | FileOptions.DeleteOnClose);
                 return resultFs;
             }
-            catch (IOException ex)
+            catch (Exception ex)
             {
+                try { File.Delete(filePath); } catch { }
                 Console.WriteLine(
-                    String.Format("An exception was thrown while opening or writing to file {0}", filePath));
+                    String.Format("An exception was thrown while operating to file {0}", filePath));
                 Console.WriteLine("Exception is: ");
                 Console.WriteLine(ex.ToString());
                 throw ex;
