@@ -70,14 +70,17 @@ namespace SafenetSignDotnet
                 }
 
                 // sign
-                if (verbose)
+                lock (lockObj)
                 {
-                    Console.WriteLine("sign to file {0}", filePath);
-                }
-                var result = Program.SignFile(signParams.hash, signParams.container, signParams.store, signParams.pin, signParams.timestamp_url, signParams.mode, filePath, signParams.timestamp_argorithm);
-                if (result != 0)
-                {
-                    throw new Exception("Sign failed");
+                    if (verbose)
+                    {
+                        Console.WriteLine("sign to file {0}", filePath);
+                    }
+                    var result = Program.SignFile(signParams.hash, signParams.container, signParams.store, signParams.pin, signParams.timestamp_url, signParams.mode, filePath, signParams.timestamp_argorithm);
+                    if (result != 0)
+                    {
+                        throw new Exception("Sign failed");
+                    }
                 }
 
                 //now open the file for reading
@@ -113,6 +116,7 @@ namespace SafenetSignDotnet
         }
 
         public static bool verbose;
+        static Object lockObj = new Object();
         static RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(2048);
         static JavaScriptSerializer jss = new JavaScriptSerializer();
 
