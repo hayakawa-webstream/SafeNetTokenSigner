@@ -103,11 +103,13 @@ namespace SafenetSignWcfClient
                 var jss = new JavaScriptSerializer();
 
                 var dic = new Dictionary<string, string>();
+                dic.Add("filename", Path.GetFileName(src_path));
                 if (options.hash != null) { dic.Add("hash", options.hash); }
                 if (options.container != null) { dic.Add("container", options.container); }
                 if (options.store != null) { dic.Add("store", options.store); }
                 if (options.timestamp_url != null) { dic.Add("timestamp_url", options.timestamp_url); }
-                if (options.mode != null) { dic.Add("mode", options.mode); }
+                var mode = options.mode ?? GetDefaultMode(src_path);
+                if (mode != null) { dic.Add("mode", mode); }
                 if (options.timestamp_argorithm != null) { dic.Add("timestamp_argorithm", options.timestamp_argorithm); }
                 if (options.pin != null)
                 {
@@ -181,6 +183,21 @@ namespace SafenetSignWcfClient
         {
             public string public_key { get; set; }
             public long ticks { get; set; }
+        }
+
+        static string GetDefaultMode(string filename)
+        {
+            var extension = Path.GetExtension(filename);
+            switch (extension.ToLower())
+            {
+                default:
+                    return null;
+                case ".appx":
+                case ".appxbundle":
+                case ".msix":
+                case ".msixbundle":
+                    return "APPX";
+            }
         }
     }
 }

@@ -47,7 +47,8 @@ namespace SafenetSignDotnet
                     }
                 }
             }
-            var filePath = Path.Combine(System.Environment.CurrentDirectory, Guid.NewGuid().ToString() + ".bin");
+            var extension = string.IsNullOrEmpty(signParams.filename) ? ".bin" : Path.GetExtension(signParams.filename);
+            var filePath = Path.Combine(System.Environment.CurrentDirectory, Guid.NewGuid().ToString() + extension);
             try
             {
                 if (verbose)
@@ -122,6 +123,7 @@ namespace SafenetSignDotnet
 
         class SignParams
         {
+            public string filename { get; set; }
             public string hash { get; set; }
             public string container { get; set; }
             public string store { get; set; }
